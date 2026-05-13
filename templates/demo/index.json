@@ -1,0 +1,26 @@
+[
+  {
+    "file": "2026-03-28_14_30_CTO_Architecture_Review.txt",
+    "date": "2026-03-28",
+    "participants": ["Alexei Petrov", "Dmitry Volkov", "Andrey Nikitin"],
+    "topics": ["data platform architecture", "DataPulse technical due diligence", "unified vs siloed approach"],
+    "decisions": ["Go with unified data platform", "Cap DataPulse at 800M RUB"],
+    "summary": "Architecture review with CTO and Head of Strategy. Decided on unified data platform approach. Set acquisition price cap for DataPulse."
+  },
+  {
+    "file": "2026-03-27_10_00_Board_Prep.txt",
+    "date": "2026-03-27",
+    "participants": ["Alexei Petrov", "Marina Sokolova", "Andrey Nikitin"],
+    "topics": ["AI pilot proposal for board", "Q1 financials", "VP AI reporting structure"],
+    "decisions": ["AI pilot starts with 2 companies", "VP AI reports to CEO"],
+    "summary": "Board prep session. Finalized AI pilot scope (2 companies) and VP AI reporting line (direct to CEO). Marina flagged Q1 P&L discrepancy."
+  },
+  {
+    "file": "2026-03-25_16_00_Strategy_Offsite.txt",
+    "date": "2026-03-25",
+    "participants": ["Alexei Petrov", "Andrey Nikitin", "Elena Kozlova", "Dmitry Volkov"],
+    "topics": ["M&A pipeline prioritization", "AI strategy", "VP AI hiring", "DataPulse vs alternatives"],
+    "decisions": ["Prioritize DataPulse acquisition", "Set up AI assistant"],
+    "summary": "Strategy offsite. Prioritized DataPulse over other targets. Kicked off VP AI search with Elena. Decided to systematize meeting tracking with AI."
+  }
+]

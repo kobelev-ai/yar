@@ -1,0 +1,22 @@
+---
+name: {{PROJECT_NAME}}
+status: active
+people: [{{PROJECT_PEOPLE}}]
+started: {{TODAY}}
+tags: []
+last_activity: {{TODAY}}
+---
+
+# {{PROJECT_NAME}}
+
+## Goal
+{{PROJECT_DESCRIPTION}}
+
+## Current Status
+Just started tracking.
+
+## Key People
+{{PROJECT_PEOPLE_LIST}}
+
+## Key Meetings
+(none yet)

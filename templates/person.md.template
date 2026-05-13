@@ -1,0 +1,18 @@
+---
+name: {{PERSON_NAME}}
+role: {{PERSON_ROLE}}
+company: {{PERSON_COMPANY}}
+last_seen: {{TODAY}}
+tags: []
+---
+
+# {{PERSON_NAME}}
+
+## Role
+{{PERSON_ROLE}} at {{PERSON_COMPANY}}
+
+## Context
+{{PERSON_CONTEXT}}
+
+## Notes
+(no notes yet)

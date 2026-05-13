@@ -1,0 +1,22 @@
+{
+  "2026-03-28_14_30_CTO_Architecture_Review.txt": {
+    "owner_speaker": "Speaker 1",
+    "confidence": "high",
+    "evidence": ["Discusses strategic decisions", "Sets price cap for acquisition", "Takes CEO-level decisions"],
+    "all_speakers": {
+      "Speaker 1": "Alexei Petrov (CEO) — drives decisions, asks strategic questions",
+      "Speaker 2": "Dmitry Volkov (CTO) — presents technical architecture options",
+      "Speaker 3": "Andrey Nikitin (Strategy) — presents financial analysis"
+    }
+  },
+  "2026-03-27_10_00_Board_Prep.txt": {
+    "owner_speaker": "Speaker 1",
+    "confidence": "high",
+    "evidence": ["Leads the meeting", "Decides on VP AI reporting line", "Asks about Q1 financials"]
+  },
+  "2026-03-25_16_00_Strategy_Offsite.txt": {
+    "owner_speaker": "Speaker 2",
+    "confidence": "high",
+    "evidence": ["Makes prioritization decisions", "Discusses personal AI assistant setup"]
+  }
+}
