@@ -27,7 +27,7 @@ Personal AI system for executives, built on [Claude Code](https://claude.ai/code
 
 1. Clone this repo:
    ```bash
-   git clone <repo-url> my-assistant
+   git clone https://github.com/kobelev-ai/yar.git my-assistant
    cd my-assistant
    ```
 
