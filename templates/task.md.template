@@ -1,0 +1,9 @@
+# {{TASK_NAME}}
+
+**Goal:** {{GOAL}}
+**Completion criteria:** Derived from the owner's request; confirm material gaps.
+**Status:** Ready to start. Checked {{TODAY}}.
+**Current result:** None yet.
+**Missing information:** Check relevant source materials before identifying gaps.
+**Next step:** Read the materials and perform the requested work.
+**Action link:** Add a todo link only if an ongoing action is needed.

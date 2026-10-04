@@ -1,69 +1,55 @@
-# Environment files with secrets
-scripts/plaud_fetcher/.env
-scripts/plaud_fetcher/plaud_fetcher.log
+# Secrets and runtime files
 .env
-*.env.local
-
-# Logs and runtime artifacts
-*.log
-*.lock
-logs/
-
-# MCP config (may contain tokens)
+.env.*
+!*.env.example
+scripts/plaud_fetcher/.env
 .mcp.json
 .mcp.json.local
-
-# OS files
+*.log
+*.lock
 .DS_Store
 Thumbs.db
 *.swp
-
-# Python
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
 .venv/
 venv/
-
-# Node
 node_modules/
 .next/
 dist/
 build/
-
-# Claude Code local settings
 .claude/settings.local.json
 
-# Internal dev artifacts (kept locally, not in distribution)
-# - migrations/: upgrade runbooks between versions, internal-only
-#   (version.md serves as client-facing changelog)
-# - client-specific integration guides (until depersonalized)
-.yar/migrations/
-docs/26-04-16_1831_Email_Calendar_Integration_Guide.md
+# Owner data: publish templates, never live work
+/tasks/*
+!/tasks/README.md
+/inbox/*
+!/inbox/.gitkeep
+/ops/tasks/*
+!/ops/tasks/.gitkeep
+/ops/meetings/*
+!/ops/meetings/.gitkeep
+/context/me.md
+/context/me/*
+!/context/me/.gitkeep
+/context/people/*
+!/context/people/_template.md
+/context/projects/*
+!/context/projects/_template.md
+/context/goals/*
+!/context/goals/.gitkeep
+/context/journal/*
+!/context/journal/.gitkeep
+/demos/
+/.yar/installed.md
+/.yar/packages/*
+!/.yar/packages/.gitkeep
+/.yar/backups/
+/.yar/workspace.json
+/.yar/migrations/
+/.yar/qa/
 
-# User's working data (created by setup/usage, never in distribution)
-context/me.md
-context/me/decisions.md
-context/me/preferences.md
-context/me/speaker_signals.md
-context/me/boundaries.md
-context/me/ideas.md
-context/people/*.md
-!context/people/_template.md
-context/projects/*.md
-!context/projects/_template.md
-context/meetings/processed/*
-!context/meetings/processed/.gitkeep
-context/meetings/docs/*
-!context/meetings/docs/.gitkeep
-context/goals/**/*.md
-context/goals/**/*.json
-context/journal/*
-!context/journal/.gitkeep
-tasks/todo.md
-tasks/archive/*
-!tasks/archive/.gitkeep
-inbox/*
-!inbox/.gitkeep
-.yar/packages/*
-!.yar/packages/.gitkeep
+# Older instances until migration
+/tasks/todo.md
+/tasks/archive/
+/context/meetings/

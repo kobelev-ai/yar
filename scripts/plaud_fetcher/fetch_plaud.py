@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Plaud Transcript Fetcher
-Fetches meeting transcripts from email (IMAP), saves to meetings/inbox/
+Fetches meeting transcripts from email (IMAP), saves to the configured inbox.
 Works with Plaud Note, Otter.ai, or any recorder that emails transcripts.
 """
 
@@ -17,6 +17,7 @@ from datetime import datetime
 from email.header import decode_header
 from pathlib import Path
 from dotenv import load_dotenv
+from paths import transcript_paths
 
 # Load environment
 load_dotenv(Path(__file__).parent / ".env")
@@ -26,15 +27,14 @@ IMAP_SERVER = os.getenv("IMAP_SERVER", "imap.gmail.com")
 IMAP_PORT = int(os.getenv("IMAP_PORT", "993"))
 EMAIL_USER = os.getenv("EMAIL_USER")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
-INBOX_PATH = Path(os.getenv("MEETINGS_INBOX", ""))
 CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", "300"))
 PLAUD_SUBJECT_PREFIX = os.getenv("PLAUD_SUBJECT_PREFIX", "[Plaud-AutoFlow]")
 
-if not INBOX_PATH or str(INBOX_PATH) == "":
-    print("ERROR: MEETINGS_INBOX must be set in .env")
+try:
+    INBOX_PATH, PROCESSED_PATH = transcript_paths(os.environ)
+except ValueError as error:
+    print(f"ERROR: {error}")
     sys.exit(1)
-
-PROCESSED_PATH = Path(os.getenv("MEETINGS_PROCESSED", str(INBOX_PATH.parent / "context" / "meetings" / "processed")))
 
 # Logging
 logging.basicConfig(
