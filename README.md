@@ -1,150 +1,142 @@
-# Yar — AI Operating System for Executives
+# Yar — a folder that helps you get work done
 
-> Your strategic reference point.
+Put materials in a folder, ask your assistant for a result, and continue from the
+saved work next time. Yar adds rules, a simple work structure and source-based
+memory to your own files. The reasoning model and the application can change;
+your materials and results remain yours.
 
-Personal AI system for executives, built on [Claude Code](https://claude.ai/code). Transforms meeting transcripts into structured knowledge, manages tasks, tracks commitments, and provides daily briefings.
+## Start with one real task
 
-## What You Get
+Clone this repository and open the folder in your agent application:
 
-- **Single Inbox**: Drop anything in `inbox/` — the system auto-detects and routes it
-- **Meeting Processing Pipeline**: Transcripts → speaker identification → task extraction → promise tracking
-- **Task Management**: Inbox processing, priority management, weekly reviews (Getting Things Done methodology)
-- **Daily Briefings**: Morning context with overdue items, upcoming deadlines, weekly goals
-- **Self-Memory**: System learns your decisions, positions, preferences, and ideas over time
-- **Promise Tracking**: Never forget what you promised or what was promised to you
-- **People Cards**: Structured knowledge about everyone you work with
-- **Decision & Ideas Log**: Immutable record of every decision and insight
-
-## Quick Start
-
-### Prerequisites
-
-- [Claude Code](https://claude.ai/code) installed and authenticated
-- macOS, Linux, or Windows (WSL)
-- Meeting recorder that produces text transcripts (Plaud Note, Fireflies, Otter.ai, Zoom export, or manual notes)
-
-### Setup (3 minutes)
-
-1. Clone this repo:
-   ```bash
-   git clone https://github.com/kobelev-ai/yar.git my-assistant
-   cd my-assistant
-   ```
-
-2. Run the setup wizard:
-   ```bash
-   claude
-   # Then type: /setup
-   ```
-
-   The wizard will:
-   - Ask you 5-7 questions about your role, projects, and preferences
-   - Generate your personalized workspace
-   - Run a "brain dump" to capture your current tasks and priorities
-   - Recommend filling the inbox with your documents
-   - Commit everything to git (built-in undo)
-
-3. (Optional) Set up automatic transcript fetcher:
-   ```bash
-   cp scripts/plaud_fetcher/.env.example scripts/plaud_fetcher/.env
-   # Edit .env with your email credentials
-   pip install python-dotenv
-   ```
-
-### Try the Demo First
-
-Want to see how it works before setting up? Load the demo workspace:
 ```bash
-claude
-# Then type: /demo
+git clone https://github.com/kobelev-ai/yar.git my-assistant
+cd my-assistant
 ```
-This loads a realistic CEO workspace with projects, tasks, promises, and meeting history.
+
+Create a folder in `tasks/` and drop in the materials:
+
+```text
+tasks/
+  Compare_proposals/
+    Proposal A.pdf
+    Proposal B.xlsx
+    Requirements.txt
+```
+
+Tell the assistant: **“Read the Yar rules. Compare the proposals in
+`tasks/Compare_proposals`: cost, scope and deadlines. Save a comparison and
+recommendation in that folder, and list what we still need to know.”**
+
+No task form is required. The assistant preserves the inputs, saves the result
+and maintains a short README with the current status and where to continue.
+Nested folders are welcome. Other folders can also be selected as work contexts.
+File formats depend on the tools available in your agent application.
+
+## Applications and setup
+
+- **Claude Code:** reads `CLAUDE.md`; workflows are in `.claude/skills/<name>/SKILL.md`.
+  Start `claude` and say `/setup`, or simply ask to configure Yar and do your task.
+- **Codex:** reads `AGENTS.md`. Ask it to set up Yar or solve a folder task in
+  plain language. This distribution doesn't require Claude-specific subagents.
+- **Other folder-enabled assistants:** give access to the folder and explicitly
+  ask them to read `AGENTS.md`. Check file/tool support and permissions first.
+  Native commands and automatic instruction loading vary by application.
+
+Setup asks your name, preferred language and first task. You can fill in the
+rest of your profile, projects and goals as you work. It creates only missing
+workspace files and preserves existing tasks, memory and source materials.
+Python 3.10+ is needed for the optional setup, demo and upgrade helper:
+
+```bash
+python3 scripts/yar_workspace.py init
+```
+
+## Three things to remember
+
+- `tasks/` — **“Here are the materials; help me produce this result.”**
+- `inbox/` — **“This arrived; help me figure out where it belongs.”**
+- `ops/tasks/todo.md` — your single list of actions, promises and things awaited.
+
+After a work session, the current result is linked from its task or project
+README. Say “continue the proposal comparison” to resume. A requested briefing
+checks dated records instead of treating an old focus or plan as today's.
+
+## Try a demo
+
+Ask `/demo` in Claude Code or “create an isolated Yar demo” in another assistant:
+
+```bash
+python3 scripts/yar_workspace.py demo
+```
+
+The helper creates a separate workspace under `demos/` and prints its path.
+Open that folder to compare two fictional supplier proposals. Your real profile,
+tasks and meeting files remain in your main workspace. Demo data is synthetic;
+the assistant still has to perform the comparison.
+
+## Workflows
+
+| Request | What happens |
+|---|---|
+| “Solve this folder task” / `/task <folder>` | Read sources, produce a checked artifact, save a continuation pointer |
+| “Process inbox” / `/inbox` | Route loose inputs and bundles; preserve originals |
+| “Process this meeting” | Index the source, produce a summary, extract actions and confirmation candidates |
+| “Give me a briefing” | Review relevant tasks, dates, goals and waiting-for items |
+| `/status`, `/brief <project>`, `/review` | Overview, project brief and confirmed review of open work |
+| “Install this recipe” / `/pkg-installer <file>` | Authorized installation, prerequisites and package record |
+
+Slash commands above are Claude Code workflows. Other assistants can follow the
+same workflow files through a plain-language request and available tools.
 
 ## Structure
 
-```
-inbox/                  # Drop ANYTHING here — system auto-processes
-.claude/
-  agents/               # AI agents (meeting-processor, todo-processor, etc.)
-  skills/               # Slash commands (/setup, /brief, /status, /review)
-  settings.json         # Claude Code settings
-context/
-  me.md                 # Your profile (generated by setup wizard)
-  me/                   # Decisions, preferences, ideas, speaker patterns, boundaries
-  projects/             # Active projects with people and context
-  people/               # Key people cards
-  meetings/             # Meeting transcripts (processed/)
-  goals/                # Goals (quarterly, weekly)
-  journal/              # Daily journal
-tasks/
-  todo.md               # Task list (live document)
-  archive/              # Weekly archives
-scripts/
-  plaud_fetcher/        # Email-based transcript fetcher
-templates/
-  demo/                 # Demo data for showcasing the system
+```text
+tasks/                    Work folders: inputs, results, current README
+inbox/                    Incoming files and bundles
+ops/
+  tasks/todo.md           Actions and commitments
+  tasks/review/           Candidates awaiting owner confirmation
+  meetings/               Transcript originals, summaries and index
+context/                  Profile, confirmed memory, projects, people and goals
+.yar/                     Distribution version and local instance state
+.claude/                  Claude Code workflows and agents
+AGENTS.md                 Shared work contract for folder-enabled agents
+scripts/                  Optional workspace helper and integrations
+templates/                Empty templates and fictional demo inputs
 ```
 
-## Agents
+## Memory with sources
 
-| Agent | What it does |
-|-------|-------------|
-| `setup-wizard` | Initial workspace setup from intake questions + brain dump |
-| `session-starter` | Morning briefing: tasks, overdue promises, project status |
-| `meeting-processor` | Full pipeline: transcript → tasks, promises, decisions, people, insights |
-| `todo-processor` | Inbox processing, task classification, priority management |
+Yar keeps original transcripts and documents alongside derived summaries. It
+uses indexes and current pointers to find relevant evidence. Decisions about
+personal memory and possible completion signals extracted from meetings are
+kept in separate queues until you confirm them. Direct explicit instructions
+in a conversation can be recorded immediately.
 
-## Skills (Slash Commands)
+A larger archive can improve answers when the assistant finds the right source
+and checks its date. Keeping files alone doesn't guarantee recall or accuracy.
 
-| Command | Description |
-|---------|-------------|
-| `/setup` | Initial workspace setup (first time) |
-| `/demo` | Load demo workspace with sample data |
-| `/inbox` | Process everything in global inbox |
-| `/brief <project>` | Quick project brief |
-| `/status` | System overview — tasks, promises, projects |
-| `/review` | Interactive weekly review |
+## Data, backups and updates
 
-## Daily Workflow
+The repository contains the distribution and synthetic examples. Workspace data
+is excluded from Git by default. Git history does **not** back up ignored files;
+make a separate backup of the whole working folder. The helper makes a verified
+local backup of files it moves during an upgrade. See [upgrade instructions](docs/upgrade/README.md).
 
-**Morning:**
-1. Open Claude Code in the project folder
-2. Session starter runs automatically with your briefing
-3. Review priorities, pick focus tasks for the day
+Files are stored in your folder. When using a cloud model, the application may
+send relevant file contents to that provider. Sync, storage and model processing
+are separate choices. Define processing boundaries in `context/me/boundaries.md`.
 
-**During the day:**
-- Drop anything into `inbox/` and say `/inbox`
-- Just tell Claude a task, idea, or thought — it saves automatically
+Switching models keeps the files. Switching applications also requires checking
+instruction loading, tools, supported formats and access to the workspace.
 
-**End of day:**
-- `/status` to see what's open
-- Review completed tasks, update priorities
+## Extending Yar
 
-**Weekly:**
-- `/review` for a full weekly review with archiving
-
-## Key Concepts
-
-### Single Inbox
-Everything goes into one folder. Meeting transcripts, documents, notes, screenshots — just throw it in `inbox/`. The system detects what it is and routes it to the right place.
-
-### Collector Behavior
-The system proactively captures decisions, preferences, ideas, and people info from every conversation. You don't need to say "remember this" — it just does.
-
-### Boundaries
-You control what gets processed. Add rules to `context/me/boundaries.md` to exclude sensitive topics. The system never invents confidentiality rules on its own.
-
-## Privacy
-
-All data stays on your machine. No cloud sync, no external APIs (except Claude Code itself). Meeting transcripts, decisions, and personal data are stored as local files. Use `.gitignore` to exclude sensitive data from version control if pushing to a remote repo.
-
-## Customization
-
-The system is designed to be extended:
-- Add new agents in `.claude/agents/`
-- Add slash commands in `.claude/skills/`
-- Modify `CLAUDE.md` to change behavior
-- Add integrations in `scripts/`
+Add a task, a project or an authorized recipe. Workflows are plain Markdown;
+adapt them to your role. [Folder-task workflow](.claude/skills/task/SKILL.md) and
+[upgrade guide](docs/upgrade/README.md) describe the working rules. Optional
+transcript fetching uses `scripts/plaud_fetcher/` and is configured separately.
 
 ## License
 

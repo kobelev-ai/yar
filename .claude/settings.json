@@ -1,17 +1,1 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(git *)",
-      "Bash(ls *)",
-      "Bash(mv *)",
-      "Bash(cp *)",
-      "Bash(date *)",
-      "Bash(mkdir *)",
-      "Read",
-      "Write",
-      "Edit",
-      "Glob",
-      "Grep"
-    ]
-  }
-}
+{"permissions":{"allow":["Read","Write","Edit","Glob","Grep","Bash(python3 scripts/yar_workspace.py *)","Bash(date *)"]}}
