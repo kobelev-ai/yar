@@ -1,7 +1,14 @@
 # Yar Version
 
-**Distribution version:** 3.0
-**Released:** 2026-10-04
+**Distribution version:** 3.1
+**Released:** 2026-10-14
+
+## 3.1 — separate task work folders from GTD
+
+- Work materials and results stay in `tasks/<name>/`; action tracking lives in `ops/gtd/`.
+- Setup, demos, workflow instructions and data exclusions use `ops/gtd/todo.md`.
+- Verified migration moves Yar 3.0 data from `ops/tasks/`, preserving custom queues,
+  original files and backups. Yar 2.3 can migrate directly to the same layout.
 
 ## 3.0 — folder tasks and durable context
 

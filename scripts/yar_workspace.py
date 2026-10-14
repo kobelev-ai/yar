@@ -12,11 +12,11 @@ import sys
 from datetime import datetime
 from uuid import uuid4
 
-VERSION = "3.0"
+VERSION = "3.1"
 DISTRIBUTION = Path(__file__).resolve().parent.parent
 QUEUES = {
-    "closures": "ops/tasks/review/closures.md",
-    "insights": "ops/tasks/review/insights.md",
+    "closures": "ops/gtd/review/closures.md",
+    "insights": "ops/gtd/review/insights.md",
 }
 
 
@@ -67,9 +67,14 @@ def render_template(name: str, values: dict[str, str]) -> str:
 def initialize(root: Path, name: str = "", language: str = "") -> list[str]:
     root.mkdir(parents=True, exist_ok=True)
     old = ["tasks/todo.md", "context/meetings/index.json"]
-    if any((root / p).exists() for p in old):
+    legacy_gtd = local_path(root, "ops/tasks")
+    legacy_gtd_data = legacy_gtd.is_file() or any(
+        p.is_symlink() or (p.is_file() and p.name != ".gitkeep")
+        for p in legacy_gtd.rglob("*")
+    )
+    if legacy_gtd_data or any((root / p).exists() for p in old):
         raise ValueError("Legacy operational files found. Preview migrate before init.")
-    queues_path = local_path(root, "ops/tasks/review/queues.json")
+    queues_path = local_path(root, "ops/gtd/review/queues.json")
     queues = json.loads(queues_path.read_text()) if queues_path.exists() else QUEUES
     if not isinstance(queues, dict) or any(not isinstance(queues.get(k), str) for k in QUEUES):
         raise ValueError("Review queues must declare local closures and insights paths.")
@@ -82,8 +87,8 @@ def initialize(root: Path, name: str = "", language: str = "") -> list[str]:
     }
     contents = {
         ".yar-root": "Yar workspace marker.\n",
-        "ops/tasks/todo.md": (DISTRIBUTION / "templates/todo.md.template").read_text(),
-        "ops/tasks/review/queues.json": json.dumps(QUEUES, indent=2) + "\n",
+        "ops/gtd/todo.md": (DISTRIBUTION / "templates/todo.md.template").read_text(),
+        "ops/gtd/review/queues.json": json.dumps(QUEUES, indent=2) + "\n",
         queues["closures"]: "# Possible closures\n\nCandidates only; explicit owner confirmation is required.\n",
         queues["insights"]: "# Memory and decision candidates\n\nCandidates only; explicit owner confirmation is required.\n",
         "ops/meetings/index.json": "[]\n",
@@ -108,7 +113,7 @@ def initialize(root: Path, name: str = "", language: str = "") -> list[str]:
             if parent.exists() and not parent.is_dir():
                 raise ValueError(f"Destination directory blocked: {relative}")
     created = [path for path, text in contents.items() if create_once(root, path, text)]
-    for relative in ["inbox/processed", "tasks", "ops/meetings/processed", "ops/meetings/docs", "ops/tasks/archive"]:
+    for relative in ["inbox/processed", "tasks", "ops/meetings/processed", "ops/meetings/docs", "ops/gtd/archive"]:
         local_path(root, relative).mkdir(parents=True, exist_ok=True)
     return created
 
@@ -156,17 +161,25 @@ def digest(path: Path) -> str:
 def migration_plan(root: Path) -> list[tuple[str, str]]:
     plan = []
     if (root / "tasks/todo.md").exists():
-        plan.append(("tasks/todo.md", "ops/tasks/todo.md"))
-    for old, new in [("tasks/archive", "ops/tasks/archive"), ("context/meetings", "ops/meetings")]:
+        plan.append(("tasks/todo.md", "ops/gtd/todo.md"))
+    for old, new in [("tasks/archive", "ops/gtd/archive"),
+                     ("ops/tasks", "ops/gtd"),
+                     ("context/meetings", "ops/meetings")]:
         source = local_path(root, old)
         if source.is_symlink():
             raise ValueError(f"Symlink legacy folder needs manual review: {old}")
+        if source.exists() and not source.is_dir():
+            raise ValueError(f"Expected a legacy directory: {old}")
         if source.exists():
             for item in sorted(source.rglob("*")):
                 local_path(root, str(item.relative_to(root)))
                 if item.is_file() and item.name != ".gitkeep":
                     plan.append((str(item.relative_to(root)), str(Path(new) / item.relative_to(source))))
+    destinations = set()
     for old, new in plan:
+        if new in destinations:
+            raise ValueError(f"Multiple legacy files target {new}. Neither was changed.")
+        destinations.add(new)
         source, dest = local_path(root, old), local_path(root, new)
         if not source.is_file():
             raise ValueError(f"Expected a regular source: {old}")
@@ -180,14 +193,16 @@ def migration_plan(root: Path) -> list[tuple[str, str]]:
     return plan
 
 
-def rewrite_meeting_paths(value, root: Path):
+def rewrite_operational_paths(value, root: Path):
     if isinstance(value, dict):
-        return {k: rewrite_meeting_paths(v, root) for k, v in value.items()}
+        return {k: rewrite_operational_paths(v, root) for k, v in value.items()}
     if isinstance(value, list):
-        return [rewrite_meeting_paths(v, root) for v in value]
+        return [rewrite_operational_paths(v, root) for v in value]
     if isinstance(value, str):
         for old, new in [("context/meetings/", "ops/meetings/"),
-                         (str(root / "context/meetings") + "/", str(root / "ops/meetings") + "/")]:
+                         (str(root / "context/meetings") + "/", str(root / "ops/meetings") + "/"),
+                         ("ops/tasks/", "ops/gtd/"),
+                         (str(root / "ops/tasks") + "/", str(root / "ops/gtd") + "/")]:
             if value.startswith(old):
                 return new + value[len(old):]
     return value
@@ -198,9 +213,9 @@ def migrate(root: Path, apply: bool = False) -> dict:
     # Validate metadata before any move.
     metadata = {}
     for old, new in plan:
-        if new in {"ops/meetings/index.json", "ops/meetings/speaker_mappings.json"}:
+        if new in {"ops/meetings/index.json", "ops/meetings/speaker_mappings.json", "ops/gtd/review/queues.json"}:
             original = json.loads((root / old).read_text(encoding="utf-8"))
-            updated = rewrite_meeting_paths(original, root)
+            updated = rewrite_operational_paths(original, root)
             if updated != original:
                 metadata[new] = json.dumps(updated, ensure_ascii=False, indent=2) + "\n"
     result = {"moves": [{"from": a, "to": b} for a, b in plan], "applied": False}
@@ -248,6 +263,19 @@ def migrate(root: Path, apply: bool = False) -> dict:
             dest.unlink(missing_ok=True)
         raise
     result.update({"applied": True, "backup": str(backup)})
+    # Remove only empty directories; preserve any unexpected files and markers.
+    for relative in ["tasks/archive", "ops/tasks", "context/meetings"]:
+        folder = root / relative
+        for path in sorted(folder.rglob("*"), key=lambda p: len(p.parts), reverse=True):
+            if path.is_dir() and not path.is_symlink():
+                try:
+                    path.rmdir()
+                except OSError:
+                    pass
+        try:
+            folder.rmdir()
+        except OSError:
+            pass
     return result
 
 

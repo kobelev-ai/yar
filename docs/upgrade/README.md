@@ -1,4 +1,4 @@
-# Upgrade an existing Yar workspace to 3.0
+# Upgrade an existing Yar workspace to 3.1
 
 User data is separate from the Git distribution. Ignored files aren't backed up
 by Git. Make and verify a separate backup of the **whole workspace**, including
@@ -24,22 +24,25 @@ python3 scripts/yar_workspace.py migrate --apply
 
 The first command previews moves. Applying them changes:
 
-- `tasks/todo.md` → `ops/tasks/todo.md`
-- files under `tasks/archive/` → `ops/tasks/archive/`
+- `tasks/todo.md` → `ops/gtd/todo.md`
+- files under `tasks/archive/` → `ops/gtd/archive/`
+- files under `ops/tasks/` (Yar 3.0) → `ops/gtd/`
 - files under `context/meetings/` → `ops/meetings/`
 
 Before moves, all affected originals are copied to a verified local backup under
 `.yar/backups/`. If source and destination conflict, the entire migration stops
 before moving anything. Symlink inputs are refused. Relative meeting paths in the
-JSON index and speaker map are updated; original bytes are kept in the backup.
+JSON index and speaker map are updated, as are paths under `ops/tasks/` in the
+confirmation queue pointer file; custom queue filenames are preserved.
+Original bytes are kept in the backup.
 A manifest records old/new paths and SHA-256. Initialization creates only missing
 operational files, queues and instance state; existing contents stay intact.
 Repeated runs do not create another action list or reset current data.
 
 The helper doesn't rewrite arbitrary historical documents, customized integration
 scripts or paths in external services. After migration, inspect references to
-`tasks/todo.md` and `context/meetings/` in your customized files and update their
-technical links as needed. Update any configured transcript fetcher's
+`ops/tasks/`, `tasks/todo.md` and `context/meetings/` in your customized files
+and update their technical links as needed. Update any configured transcript fetcher's
 `MEETINGS_PROCESSED` path to `ops/meetings/processed/` (and restart your scheduler
 only after checking its actual configuration). If the index contains absolute
 paths or an unusual schema, open its records and check migrated links before use.

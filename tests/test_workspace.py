@@ -28,7 +28,7 @@ class WorkspaceTests(unittest.TestCase):
 
     def test_reinitialization_preserves_all_existing_data(self):
         yar.initialize(self.root, "Existing owner")
-        for path in ["ops/tasks/todo.md", "context/me.md", "ops/meetings/index.json", "context/me/decisions.md"]:
+        for path in ["ops/gtd/todo.md", "context/me.md", "ops/meetings/index.json", "context/me/decisions.md"]:
             self.write(path, "Owner's actual content\n")
         before = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
         self.assertEqual(yar.initialize(self.root, "Another name"), [])
@@ -36,17 +36,24 @@ class WorkspaceTests(unittest.TestCase):
             self.assertEqual((self.root / path).read_bytes(), content)
 
     def test_existing_queue_paths_are_respected(self):
-        self.write("ops/tasks/review/queues.json", json.dumps({"closures": "ops/tasks/review/custom.md", "insights": "ops/tasks/review/custom_ideas.md"}))
+        self.write("ops/gtd/review/queues.json", json.dumps({"closures": "ops/gtd/review/custom.md", "insights": "ops/gtd/review/custom_ideas.md"}))
         yar.initialize(self.root)
-        self.assertTrue((self.root / "ops/tasks/review/custom.md").is_file())
-        self.assertFalse((self.root / "ops/tasks/review/closures.md").exists())
+        self.assertTrue((self.root / "ops/gtd/review/custom.md").is_file())
+        self.assertFalse((self.root / "ops/gtd/review/closures.md").exists())
 
     def test_legacy_init_requires_migration_before_second_todo(self):
         old = self.write("tasks/todo.md", "- [ ] Actual commitment\n")
         with self.assertRaises(ValueError):
             yar.initialize(self.root)
         self.assertTrue(old.exists())
-        self.assertFalse((self.root / "ops/tasks/todo.md").exists())
+        self.assertFalse((self.root / "ops/gtd/todo.md").exists())
+
+    def test_3_0_init_requires_migration_even_without_old_todo(self):
+        old = self.write("ops/tasks/review/custom.md", "Unconfirmed candidates\n")
+        with self.assertRaises(ValueError):
+            yar.initialize(self.root)
+        self.assertEqual(old.read_text(), "Unconfirmed candidates\n")
+        self.assertFalse((self.root / "ops/gtd/todo.md").exists())
 
     def test_nested_task_reuses_current_pointer_and_keeps_inputs(self):
         folder = yar.create_task(self.root, "Customer/Compare", "Compare these proposals")
@@ -68,7 +75,7 @@ class WorkspaceTests(unittest.TestCase):
 
     def test_demo_is_separate_and_repeated_runs_never_reset_main(self):
         yar.initialize(self.root)
-        live = self.write("ops/tasks/todo.md", "- [ ] Real confidential commitment\n")
+        live = self.write("ops/gtd/todo.md", "- [ ] Real confidential commitment\n")
         first = yar.create_demo(self.root)
         second = yar.create_demo(self.root)
         self.assertNotEqual(first, second)
@@ -111,7 +118,7 @@ class WorkspaceTests(unittest.TestCase):
         self.legacy_files()
         original_todo = (self.root / "tasks/todo.md").read_bytes()
         result = yar.migrate(self.root, apply=True)
-        self.assertEqual((self.root / "ops/tasks/todo.md").read_bytes(), original_todo)
+        self.assertEqual((self.root / "ops/gtd/todo.md").read_bytes(), original_todo)
         self.assertFalse((self.root / "tasks/todo.md").exists())
         index = json.loads((self.root / "ops/meetings/index.json").read_text())
         self.assertEqual(index[0]["file"], "ops/meetings/processed/Meeting original.txt")
@@ -120,7 +127,7 @@ class WorkspaceTests(unittest.TestCase):
         for row in json.loads((backup / "manifest.json").read_text()):
             self.assertEqual(yar.digest(backup / "originals" / row["from"]), row["sha256"])
         self.assertEqual(yar.migrate(self.root, apply=True)["moves"], [])
-        self.assertEqual((self.root / "ops/tasks/todo.md").read_bytes(), original_todo)
+        self.assertEqual((self.root / "ops/gtd/todo.md").read_bytes(), original_todo)
 
     def test_migration_conflict_stops_before_any_move(self):
         self.legacy_files()
@@ -128,8 +135,88 @@ class WorkspaceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             yar.migrate(self.root, apply=True)
         self.assertTrue((self.root / "tasks/todo.md").is_file())
-        self.assertFalse((self.root / "ops/tasks/todo.md").exists())
+        self.assertFalse((self.root / "ops/gtd/todo.md").exists())
         self.assertFalse((self.root / ".yar/backups").exists())
+
+    def test_3_0_migration_preserves_custom_queues_sources_and_task_folders(self):
+        todo = b"- [ ] Real promise\n- [X] Completed item\n"
+        self.write("ops/tasks/todo.md", todo)
+        queues = {"closures": "ops/tasks/review/custom.md",
+                  "insights": "ops/tasks/review/custom_ideas.md",
+                  "focus_history": "ops/tasks/archive/focus.md"}
+        self.write("ops/tasks/review/queues.json", json.dumps(queues))
+        self.write(queues["closures"], "Owner's closure candidates\n")
+        self.write(queues["insights"], "Owner's memory candidates\n")
+        self.write(queues["focus_history"], "Dated old focus\n")
+        source = self.write("ops/tasks/inbox/Attachments/Original file.bin", b"\x00\xffOriginal")
+        task = self.write("tasks/Client/README.md", "Current result: report.md\n")
+        before = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
+        preview = yar.migrate(self.root)
+        self.assertFalse(preview["applied"])
+        self.assertEqual(before, {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()})
+        result = yar.migrate(self.root, apply=True)
+        self.assertEqual((self.root / "ops/gtd/todo.md").read_bytes(), todo)
+        self.assertFalse((self.root / "ops/tasks").exists())
+        self.assertEqual((self.root / "ops/gtd/inbox/Attachments/Original file.bin").read_bytes(), before[source.relative_to(self.root)])
+        self.assertEqual(task.read_bytes(), before[task.relative_to(self.root)])
+        updated = json.loads((self.root / "ops/gtd/review/queues.json").read_text())
+        for key, old_path in queues.items():
+            self.assertEqual(updated[key], old_path.replace("ops/tasks/", "ops/gtd/"))
+            self.assertEqual((self.root / updated[key]).read_bytes(), before[Path(old_path)])
+        self.assertFalse((self.root / "ops/gtd/review/closures.md").exists())
+        backup = Path(result["backup"])
+        for relative, data in before.items():
+            if str(relative).startswith("ops/tasks/"):
+                self.assertEqual((backup / "originals" / relative).read_bytes(), data)
+        self.assertEqual(yar.migrate(self.root, apply=True)["moves"], [])
+        self.assertEqual(yar.initialize(self.root), [])
+
+    def test_3_0_migration_conflict_keeps_both_lists_and_creates_no_backup(self):
+        old = self.write("ops/tasks/todo.md", "Old real actions\n")
+        new = self.write("ops/gtd/todo.md", "New real actions\n")
+        with self.assertRaises(ValueError):
+            yar.migrate(self.root, apply=True)
+        self.assertEqual(old.read_text(), "Old real actions\n")
+        self.assertEqual(new.read_text(), "New real actions\n")
+        self.assertFalse((self.root / ".yar/backups").exists())
+
+    def test_multiple_legacy_lists_conflict_before_any_move(self):
+        self.write("tasks/todo.md", "2.3 list\n")
+        self.write("ops/tasks/todo.md", "3.0 list\n")
+        with self.assertRaises(ValueError):
+            yar.migrate(self.root, apply=True)
+        self.assertFalse((self.root / "ops/gtd/todo.md").exists())
+        self.assertFalse((self.root / ".yar/backups").exists())
+
+    def test_invalid_3_0_queue_json_stops_before_any_move(self):
+        self.write("ops/tasks/todo.md", "Real promise\n")
+        self.write("ops/tasks/review/queues.json", "invalid json")
+        with self.assertRaises(ValueError):
+            yar.migrate(self.root, apply=True)
+        self.assertTrue((self.root / "ops/tasks/todo.md").is_file())
+        self.assertFalse((self.root / "ops/gtd/todo.md").exists())
+        self.assertFalse((self.root / ".yar/backups").exists())
+
+    def test_3_0_migration_failure_restores_original_queue_pointers(self):
+        self.write("ops/tasks/todo.md", "Real promise\n")
+        self.write("ops/tasks/review/queues.json", json.dumps({"closures": "ops/tasks/review/custom.md", "insights": "ops/tasks/review/ideas.md"}))
+        self.write("ops/tasks/review/custom.md", "Candidate only\n")
+        self.write("ops/tasks/review/ideas.md", "Unconfirmed idea\n")
+        before = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
+        with patch.object(yar, "initialize", side_effect=OSError("simulated initialization failure")):
+            with self.assertRaises(OSError):
+                yar.migrate(self.root, apply=True)
+        for path, data in before.items():
+            self.assertEqual((self.root / path).read_bytes(), data)
+        self.assertFalse((self.root / "ops/gtd/review/queues.json").exists())
+
+    def test_3_0_symlink_source_is_not_moved(self):
+        self.write("external.txt", "original")
+        (self.root / "ops/tasks").mkdir(parents=True)
+        (self.root / "ops/tasks/todo.md").symlink_to(self.root / "external.txt")
+        with self.assertRaises(ValueError):
+            yar.migrate(self.root, apply=True)
+        self.assertEqual((self.root / "external.txt").read_text(), "original")
 
     def test_invalid_legacy_json_stops_before_any_move(self):
         self.legacy_files()
@@ -137,7 +224,7 @@ class WorkspaceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             yar.migrate(self.root, apply=True)
         self.assertTrue((self.root / "tasks/todo.md").is_file())
-        self.assertFalse((self.root / "ops/tasks/todo.md").exists())
+        self.assertFalse((self.root / "ops/gtd/todo.md").exists())
 
     def test_failed_migration_restores_originals(self):
         self.legacy_files()
@@ -147,7 +234,7 @@ class WorkspaceTests(unittest.TestCase):
                 yar.migrate(self.root, apply=True)
         for path, data in before.items():
             self.assertEqual((self.root / path).read_bytes(), data)
-        self.assertFalse((self.root / "ops/tasks/todo.md").exists())
+        self.assertFalse((self.root / "ops/gtd/todo.md").exists())
 
     def test_symlink_legacy_source_is_not_moved(self):
         self.write("external.txt", "original")
@@ -159,8 +246,8 @@ class WorkspaceTests(unittest.TestCase):
 
     def test_distribution_contract_and_data_exclusions(self):
         self.assertEqual((REPO / "AGENTS.md").read_bytes(), (REPO / "CLAUDE.md").read_bytes())
-        private = ["tasks/Client/input.pdf", "tasks/Client/README.md", "ops/tasks/todo.md",
-                   "ops/tasks/review/closures.md", "ops/meetings/index.json",
+        private = ["tasks/Client/input.pdf", "tasks/Client/README.md", "ops/gtd/todo.md", "ops/tasks/todo.md",
+                   "ops/gtd/review/closures.md", "ops/meetings/index.json",
                    "context/me.md", ".yar/installed.md", "demos/test/README.md"]
         result = subprocess.run(["git", "check-ignore", "--no-index", "--stdin"], cwd=REPO,
                                 input="\n".join(private) + "\n", text=True, capture_output=True, check=True)

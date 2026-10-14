@@ -27,10 +27,10 @@ argument-hint: "<folder or task name>"
 7. Create/update README: goal, criteria, actual status/date, current result link,
    missing information, next step, and a link to a relevant open action if needed.
    Don't claim that a prepared artifact was sent or accepted.
-8. Link ongoing actions to `ops/tasks/todo.md` without semantic duplicates. Record
+8. Link ongoing actions to `ops/gtd/todo.md` without semantic duplicates. Record
    only the owner's actual commitments and confirmed dates. A finished one-turn
    request does not require an open item. Put meeting-derived memory/closure
-   candidates into the queues declared in `ops/tasks/review/queues.json`.
+   candidates into the queues declared in `ops/gtd/review/queues.json`.
 9. Return the result and clickable file link. When asked to continue later, begin
    from this README and necessary sources. Internal tool setup belongs in the
    work record, not the audience-facing deliverable.
