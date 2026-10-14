@@ -56,7 +56,10 @@ python3 scripts/yar_workspace.py init
 
 - `tasks/` — **“Here are the materials; help me produce this result.”**
 - `inbox/` — **“This arrived; help me figure out where it belongs.”**
-- `ops/tasks/todo.md` — your single list of actions, promises and things awaited.
+- `ops/gtd/todo.md` — your single list of actions, promises and things awaited.
+
+`ops/gtd/` holds the whole action-tracking system: todo, review queues and
+archives. `tasks/` holds the source materials and results of individual requests.
 
 After a work session, the current result is linked from its task or project
 README. Say “continue the proposal comparison” to resume. A requested briefing
@@ -95,8 +98,8 @@ same workflow files through a plain-language request and available tools.
 tasks/                    Work folders: inputs, results, current README
 inbox/                    Incoming files and bundles
 ops/
-  tasks/todo.md           Actions and commitments
-  tasks/review/           Candidates awaiting owner confirmation
+  gtd/todo.md             Actions and commitments
+  gtd/review/             Candidates awaiting owner confirmation
   meetings/               Transcript originals, summaries and index
 context/                  Profile, confirmed memory, projects, people and goals
 .yar/                     Distribution version and local instance state

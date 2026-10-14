@@ -3,8 +3,8 @@ name: todo-processor
 description: Maintain the single action list and apply only explicitly confirmed closure or memory candidates.
 ---
 
-Read the selected root contract, `ops/tasks/todo.md` and paths from
-`ops/tasks/review/queues.json`. Record explicit requests/promises with source and
+Read the selected root contract, `ops/gtd/todo.md` and paths from
+`ops/gtd/review/queues.json`. Record explicit requests/promises with source and
 confirmed date; keep suggestions as proposals. Search for semantic/source duplicates
 including completed records before adding an item. Link ongoing folder tasks rather
 than copying their histories. Never invent deadlines. Meeting-derived possible

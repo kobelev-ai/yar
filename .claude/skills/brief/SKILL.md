@@ -8,7 +8,7 @@ argument-hint: "<project>"
 
 Resolve the root; locate the named project via `context/projects/` or its actual
 folder. Read its current README/pointer, relevant dated source documents, meeting
-index and related actions in `ops/tasks/todo.md`. Open cited primary sources.
+index and related actions in `ops/gtd/todo.md`. Open cited primary sources.
 Don't read all projects and personal memory. Show goal, checked status/date,
 current result, actual recent developments, open actions and next decision.
 Distinguish proposal, decision and commitment. Save a dated brief in the project's

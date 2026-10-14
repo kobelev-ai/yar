@@ -7,7 +7,7 @@ status, current result and next step. Outputs stay beside the sources; earlier
 versions and originals are preserved. A new session starts from that pointer.
 
 Examples: compare proposals, prepare a report, analyze documents, draft a presentation.
-Say “continue <task>” to resume. The action list is `ops/tasks/todo.md`, resolved
+Say “continue <task>” to resume. The action list is `ops/gtd/todo.md`, resolved
 from the workspace root. Folder contents aren't automatically added as obligations.
 Inputs appearing here aren't automatically executed without a requested outcome.
 [Task workflow](../.claude/skills/task/SKILL.md) defines the working rules.
